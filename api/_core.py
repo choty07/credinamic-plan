@@ -161,3 +161,47 @@ def generar(valor, tipo, cuotas, salida, nombre=None):
     else:
         img.save(salida, optimize=True)
     return {"cuota": cuota, "intereses": total_int, "total": total_pagar}
+
+
+def generar_resumen(valor, tipo, cuotas, salida, nombre=None):
+    """Tarjeta horizontal 1200x630 para la vista previa grande de WhatsApp (og:image)."""
+    lo, hi = LIMITES[tipo]
+    if not (300_000 <= valor <= 1_500_000) or not (lo <= cuotas <= hi):
+        raise ValueError("Datos fuera de rango")
+    filas = plan(valor, tipo, cuotas)
+    cuota = filas[0][4]
+    total = sum(r[4] for r in filas)
+    W, H = 1200, 630
+    img = Image.new("RGB", (W, H), AZUL_1)
+    d = ImageDraw.Draw(img)
+    for x in range(W):
+        t = x / W
+        col = tuple(int(AZUL_2[j] * (1 - t) + AZUL_1[j] * t) for j in range(3))
+        d.line([(x, 0), (x, H)], fill=col)
+    d.text((60, 44), "credinamic", font=ImageFont.truetype(POPPINS, 38), fill=BLANCO)
+    tf = ImageFont.truetype(POPPINS, 58)
+    titulo = f"{nombre}, tu plan de " if nombre else "Tu plan de "
+    d.text((60, 110), titulo, font=tf, fill=BLANCO)
+    d.text((60 + d.textlength(titulo, font=tf), 110), "pagos", font=tf, fill=CELESTE)
+    freq = "quincenal" if tipo == "quincenales" else "mensual"
+    # tarjeta grande con la cuota
+    d.rounded_rectangle([60, 220, 1140, 430], radius=32, fill=CELESTE)
+    d.text((100, 250), f"CUOTA {freq.upper()}", font=f("Inter-SemiBold.otf", 28), fill=TEXTO)
+    d.text((100, 292), cop(cuota), font=ImageFont.truetype(POPPINS, 92), fill=TEXTO)
+    det = f"{cuotas} cuotas"
+    df = f("Inter-Bold.otf", 40)
+    d.text((1100 - d.textlength(det, font=df), 330), det, font=df, fill=TEXTO)
+    # datos inferiores
+    sf = f("Inter-Regular.otf", 28)
+    bf = f("Inter-Bold.otf", 34)
+    d.text((60, 462), "Crédito", font=sf, fill=(205, 218, 242))
+    d.text((60, 500), cop(valor), font=bf, fill=BLANCO)
+    d.text((440, 462), "Total a pagar", font=sf, fill=(205, 218, 242))
+    d.text((440, 500), cop(total), font=bf, fill=BLANCO)
+    d.text((820, 462), "Toca para ver", font=sf, fill=(205, 218, 242))
+    d.text((820, 500), "cuota por cuota", font=bf, fill=BLANCO)
+    d.text((60, 572), "Valores aproximados. Sujeto a estudio y aprobación.", font=f("Inter-Regular.otf", 22), fill=(185, 200, 232))
+    if hasattr(salida, "write"):
+        img.save(salida, format="JPEG", quality=85, optimize=True)
+    else:
+        img.save(salida, quality=85, optimize=True)

@@ -40,6 +40,7 @@ class handler(BaseHTTPRequestHandler):
             params["nombre"] = nombre
         host = self.headers.get("host", "")
         img = f"https://{host}/api/plan?{urlencode(params)}"
+        og = f"https://{host}/api/resumen?{urlencode(params)}"
         titulo = f"Tu plan de pagos: {cuotas} cuotas de {cop(cuota)} ({freq})"
         desc = f"Crédito de {cop(monto)}. Valores aproximados, sujeto a estudio y aprobación."
 
@@ -49,9 +50,10 @@ class handler(BaseHTTPRequestHandler):
 <title>{html.escape(titulo)}</title>
 <meta property="og:title" content="{html.escape(titulo)}">
 <meta property="og:description" content="{html.escape(desc)}">
-<meta property="og:image" content="{html.escape(img)}">
-<meta property="og:image:type" content="image/png">
-<meta property="og:image:width" content="1080">
+<meta property="og:image" content="{html.escape(og)}">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <meta property="og:type" content="website">
 <style>body{{margin:0;background:#1e408c;display:flex;justify-content:center}}img{{width:100%;max-width:540px;height:auto}}</style>
 </head><body><img src="{html.escape(img)}" alt="{html.escape(titulo)}"></body></html>"""
